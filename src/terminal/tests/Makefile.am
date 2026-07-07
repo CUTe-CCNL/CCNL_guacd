@@ -34,12 +34,15 @@ check_PROGRAMS = test_terminal
 TESTS = $(check_PROGRAMS)
 
 test_terminal_SOURCES =            \
+    terminal/set-columns.c         \
     selection-point/enclose-text.c \
     selection-point/point-after.c  \
     selection-point/rounding.c
 
 test_terminal_CFLAGS =      \
     -Werror -Wall -pedantic \
+    @COMMON_INCLUDE@        \
+    @LIBGUAC_INCLUDE@       \
     @TERMINAL_INCLUDE@
 
 test_terminal_LDADD =  \

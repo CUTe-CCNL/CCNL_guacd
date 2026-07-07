@@ -916,9 +916,15 @@ void guac_terminal_commit_cursor(guac_terminal* term) {
 
         guac_terminal_char* characters;
         int length = guac_terminal_buffer_get_columns(term->current_buffer, &characters, NULL, term->visible_cursor_row);
-        if (term->visible_cursor_col < length)
+        if (term->visible_cursor_col < length) {
+            guac_terminal_char* character = &characters[term->visible_cursor_col];
+            int end_column = term->visible_cursor_col + character->width - 1;
+            if (end_column >= length)
+                end_column = length - 1;
+
             guac_terminal_display_set_columns(term->display, term->visible_cursor_row + term->scroll_offset,
-                    term->visible_cursor_col, term->visible_cursor_col, &characters[term->visible_cursor_col]);
+                    term->visible_cursor_col, end_column, character);
+        }
 
     }
 
@@ -929,9 +935,15 @@ void guac_terminal_commit_cursor(guac_terminal* term) {
 
         guac_terminal_char* characters;
         int length = guac_terminal_buffer_get_columns(term->current_buffer, &characters, NULL, term->cursor_row);
-        if (term->cursor_col < length)
+        if (term->cursor_col < length) {
+            guac_terminal_char* character = &characters[term->cursor_col];
+            int end_column = term->cursor_col + character->width - 1;
+            if (end_column >= length)
+                end_column = length - 1;
+
             guac_terminal_display_set_columns(term->display, term->cursor_row + term->scroll_offset,
-                    term->cursor_col, term->cursor_col, &characters[term->cursor_col]);
+                    term->cursor_col, end_column, character);
+        }
 
         term->visible_cursor_row = term->cursor_row;
         term->visible_cursor_col = term->cursor_col;
@@ -1308,8 +1320,20 @@ void guac_terminal_set_columns(guac_terminal* terminal, int row,
         guac_terminal_char cursor_character = *character;
         cursor_character.attributes.cursor = true;
 
-        __guac_terminal_set_columns(terminal, row,
-                terminal->visible_cursor_col, terminal->visible_cursor_col, &cursor_character);
+        int cursor_redraw_start_col = terminal->visible_cursor_col;
+        int cursor_redraw_end_col = terminal->visible_cursor_col + character->width - 1;
+
+        if (cursor_redraw_start_col < start_column)
+            cursor_redraw_start_col = start_column;
+        if (cursor_redraw_end_col > end_column)
+            cursor_redraw_end_col = end_column;
+
+        guac_terminal_display_set_columns(terminal->display,
+                row + terminal->scroll_offset,
+                cursor_redraw_start_col, cursor_redraw_end_col,
+                &cursor_character);
+        guac_terminal_buffer_set_cursor(terminal->current_buffer, row,
+                terminal->visible_cursor_col, true);
 
     }
 
