@@ -141,8 +141,11 @@ ARG LIBVNCCLIENT_X86_OPTS=""
 
 ARG LIBWEBSOCKETS_ARM_OPTS=""
 
+# HTTP/3 in libwebsockets 5.x forces GnuTLS by default. Keep the OpenSSL
+# backend used by guacamole-server's Kubernetes client.
 ARG LIBWEBSOCKETS_OPTS="\
     -DDISABLE_WERROR=ON \
+    -DLWS_WITH_HTTP3=OFF \
     -DLWS_WITHOUT_SERVER=ON \
     -DLWS_WITHOUT_TESTAPPS=ON \
     -DLWS_WITHOUT_TEST_CLIENT=ON \
